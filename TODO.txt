@@ -1,0 +1,51 @@
+﻿
+***TODO: when creating the trackers, depending on the intervals, set different times to update the tracker.
+
+***TODO: When UpdateBuySignalAsync:
+Create a field in the SignalTracker with an Enum (SignalType) LastSignalType that possibly changes on update
+
+***TODO: Stop Trackers for Specific Time : StopTrackersTimeSpecific(string period)
+
+TODO ChatGpt Ask
+If this is my EvaluateBuySignalAsync: "private async Task EvaluateBuySignalAsync()
+    {
+        // Make sure we have enough data for indicators
+        if (_closes.Count < Math.Max(_tradingOptions.SlowEma, _tradingOptions.UltraSlowEma))
+            return;
+
+        // === 1. RSI ===
+        var rsi = indicatorService.ComputeRsi(_closes);
+
+        // === 2. MACD ===
+        var macd = indicatorService.ComputeMacd(
+            _closes,
+            _tradingOptions.FastEma,
+            _tradingOptions.SlowEma,
+            _tradingOptions.SignalPeriod);
+
+        var last = macd.MacdLine.Count - 1;
+        var crossedUp =
+            macd.MacdLine[last - 1] < macd.SignalLine[last - 1] && // was below
+            macd.MacdLine[last] > macd.SignalLine[last]; // crossed above
+
+        // === 3. OBV ===
+        var obvSeries = indicatorService.ComputeOnBalanceVolume(_closes, _volumes);
+        var obvTrendUp = obvSeries[^1] > obvSeries[^2];
+
+        // === 4. UltraSlowEma trend filter ===
+        var emaSeries = indicatorService.ComputeEma(_closes, _tradingOptions.UltraSlowEma);
+        if (emaSeries.Count < 2) return;
+
+        var ultraSlowEma = emaSeries[^1];
+        var prevUltraSlowEma = emaSeries[^2];
+        var isTrendUp = ultraSlowEma > prevUltraSlowEma;
+
+        // === Final BUY condition ===
+        if (rsi < _rsiValue && crossedUp && obvTrendUp && isTrendUp)
+        {
+            await telegramService.SendMessageAsync(
+                $"✅ BUY signal for {_symbol} [{_interval}] " +
+                $"(RSI={rsi:F2}, MACD crossover, OBV up, EMA{_tradingOptions.UltraSlowEma} trending up)"
+            );
+        }
+    }", is there a way to refactor it so for each of the checks, to have a bool and a separate method that returns it?

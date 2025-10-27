@@ -1,0 +1,5 @@
+﻿Trading Style	    Fast EMA	Slow EMA	Signal Line	Best For
+Scalping	        5	        13	        4	                    Very short-term moves
+Day Trading	        8	        17       	6	                    Intraday momentum
+Swing Trading	    12	        26	        9                     	Multi-day trends
+Position Trading	19	        39      	14	                    Long-term trends
