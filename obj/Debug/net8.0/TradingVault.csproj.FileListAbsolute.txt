@@ -175,3 +175,4 @@ C:\Users\avlad\projects\Trade Vault\TradingVault\TradingVault\obj\Debug\net8.0\T
 C:\Users\avlad\projects\Trade Vault\TradingVault\TradingVault\obj\Debug\net8.0\TradingVault.genruntimeconfig.cache
 C:\Users\avlad\projects\Trade Vault\TradingVault\TradingVault\obj\Debug\net8.0\ref\TradingVault.dll
 C:\Users\avlad\projects\Trade Vault\TradingVault\TradingVault\bin\Debug\net8.0\appsettings.json
+C:\Users\avlad\projects\Trade Vault\TradingVault\TradingVault\obj\Debug\net8.0\TradingVault.sourcelink.json

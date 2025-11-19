@@ -123,6 +123,7 @@ public class SignalTrackerSB(
             _tradingOptions.SignalPeriod);
 
         var last = macd.MacdLine.Count - 1;
+        
         var crossedUp =
             macd.MacdLine[last - 1] < macd.SignalLine[last - 1] && // was below
             macd.MacdLine[last] > macd.SignalLine[last]; // crossed above
@@ -138,9 +139,13 @@ public class SignalTrackerSB(
         var ultraSlowEma = emaSeries[^1];
         var prevUltraSlowEma = emaSeries[^2];
         var isTrendUp = ultraSlowEma > prevUltraSlowEma;
+        var isRsiUnderHighLimit = rsi < _rsiValue;
+
+        // Hardcoded Rsi Limits
+        var isRsiBetweenLimits = rsi > _tradingOptions.LowRsi & rsi < _tradingOptions.HighRsi;
 
         // === Final BUY condition ===
-        if (rsi < _rsiValue && crossedUp && isTrendUp && obvTrendUp) // && obvTrendUp
+        if (crossedUp) // crossedUp && isTrendUp && rsi < _rsiValue && obvTrendUp && isRsiBetweenLimits  && isRsiUnderHighLimit
         {
             await telegramService.SendMessageAsync(
                 $"✅ BUY signal for {_symbol} [{_interval}] " +

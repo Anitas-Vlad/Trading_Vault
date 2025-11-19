@@ -3,14 +3,19 @@
 public class TradingOptions
 {
     public string QuoteAsset { get; set; } = "USDC";
-    public int RsiPeriod { get; set; } = 14;
+    public int RsiPeriod { get; set; } = 14; 
     public int Limit { get; set; } = 50;
 
     // MACD-specific
-    public int FastEma { get; set; } = 12;
-    public int SlowEma { get; set; } = 26;
-    public int UltraSlowEma { get; set; } = 48;
-    public int SignalPeriod { get; set; } = 9;
+    public int FastEma { get; set; } = 12; // 12
+    public int SlowEma { get; set; } = 26; // 26
+    public int UltraSlowEma { get; set; } = 48; // 48
+    public int SignalPeriod { get; set; } = 9 ; // 9
+    
+    // Hardcoded RSI limits
+
+    public int LowRsi { get; set; } = 10;
+    public int HighRsi { get; set; } = 80;
 }
 
 // Trading Style	    Fast EMA	Slow EMA	Signal Line	Best For

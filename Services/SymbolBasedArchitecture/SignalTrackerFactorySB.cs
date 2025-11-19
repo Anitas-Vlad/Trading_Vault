@@ -47,6 +47,7 @@ public class SignalTrackerFactorySB(
             return;
         }
 
+
         foreach (var symbolValue in usdcPairs)
         {
             var symbol = new Symbol(symbolValue);
@@ -55,7 +56,8 @@ public class SignalTrackerFactorySB(
             symbol.trackers.Add(tracker);
             _symbols.Add(symbol);
 
-            await tracker.SeedAsync();
+            // await tracker.SeedAsync();
+            _ = Task.Run(() => tracker.SeedAsync()); //TODO Edited this hoping it fixes the initial cold delay issue
         }
 
         _ = Task.Run(() => UpdateLoopAsync(interval, _ctssByInterval[interval].Token));
@@ -71,12 +73,10 @@ public class SignalTrackerFactorySB(
 
         var nextUpdateTime = DateTime.UtcNow + initialDelay;
 
-        var header = $"[{interval}]";
-
         await UpdateTrackersAsync(interval);
 
         await telegramService.SendMessageAsync(
-            $"{header} ⏱️ Tracker started.\nNext update at *{nextUpdateTime:HH:mm:ss.} UTC* " +
+            $"[{interval}] ⏱️ Tracker started.\nNext update at *{nextUpdateTime:HH:mm:ss.} UTC* " +
             $"(in {initialDelay.TotalSeconds:F0}s)"
         );
 
@@ -89,19 +89,19 @@ public class SignalTrackerFactorySB(
             // Console.WriteLine($"\n{header} 🔄 Update triggered at {loopStart:HH:mm:ss} UTC");
 
             // await telegramService.SendMessageAsync($"{header} 🔄 Update triggered at *{loopStartLocal:HH:mm:ss} UTC*"); 
-            await telegramService.SendMessageAsync($"{header} 🔄 Update triggered");
+            await telegramService.SendMessageAsync($"{interval} 🔄 Update triggered");
 
             await UpdateTrackersAsync(interval);
 
             var nextAlignedTime = loopStart + intervalSpan;
             var nextAlignedTimeLocal = DateTime.Now + intervalSpan;
             await telegramService.SendMessageAsync(
-                $"{header} ✅ Done updating. Next at *{nextAlignedTimeLocal:HH:mm:ss} UTC*");
+                $"[{interval}] ✅ Done updating. Next at *{nextAlignedTimeLocal:HH:mm:ss} UTC*");
 
             // Heartbeat countdown (every 5 seconds)
             for (var i = (int)intervalSpan.TotalSeconds; i > 0 && !token.IsCancellationRequested; i -= 5)
             {
-                Console.Write($"\r{header} ⏳ Next update in {i}s...");
+                Console.Write($"\r[{interval}] ⏳ Next update in {i}s...");
                 await Task.Delay(TimeSpan.FromSeconds(5), token);
             }
         }

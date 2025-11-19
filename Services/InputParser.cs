@@ -33,7 +33,7 @@ public class InputParser : IInputParser
             return null;
 
         if (!int.TryParse(rsiString, out var rsiValue) || rsiValue < 1 || rsiValue > 100)
-            return null;
+            return null; 
 
         return new TrackerData(interval, rsiValue);
     }
