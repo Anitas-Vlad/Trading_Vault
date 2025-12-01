@@ -2,6 +2,7 @@
 using TradingVault.Interfaces;
 using TradingVault.Interfaces.SymbolBasedArchitecture;
 using TradingVault.Models;
+using TradingVault.Models.Enums;
 using TradingVault.Options;
 using TradingVault.Options.TradingOptions;
 
@@ -123,7 +124,7 @@ public class SignalTrackerSB(
             _tradingOptions.SignalPeriod);
 
         var last = macd.MacdLine.Count - 1;
-        
+
         var crossedUp =
             macd.MacdLine[last - 1] < macd.SignalLine[last - 1] && // was below
             macd.MacdLine[last] > macd.SignalLine[last]; // crossed above
@@ -144,8 +145,12 @@ public class SignalTrackerSB(
         // Hardcoded Rsi Limits
         var isRsiBetweenLimits = rsi > _tradingOptions.LowRsi & rsi < _tradingOptions.HighRsi;
 
-        // === Final BUY condition ===
-        if (crossedUp) // crossedUp && isTrendUp && rsi < _rsiValue && obvTrendUp && isRsiBetweenLimits  && isRsiUnderHighLimit
+        if (crossedUp && isRsiUnderHighLimit)
+            // && crossedUp
+            // && isTrendUp
+            // && obvTrendUp
+            // && isRsiBetweenLimits
+            // && isRsiUnderHighLimit
         {
             await telegramService.SendMessageAsync(
                 $"✅ BUY signal for {_symbol} [{_interval}] " +

@@ -47,6 +47,17 @@ public class TradingVault(
                         break;
 
                     default:
+                        if (message.ToLower().StartsWith("start specific tracker "))
+                        {
+                            var startSpecificSymbolRsiRequest = inputParser.ParseStartSpecificTrackerCommand(message);
+                            if (startSpecificSymbolRsiRequest != null)
+                            {
+                                
+                            }
+
+                            break;
+                        }
+                        
                         if (message.StartsWith("rsi below "))
                         {
                             var rsiRequest = inputParser.ParseRsiCommand(message);
@@ -75,7 +86,7 @@ public class TradingVault(
 
                         if (message.StartsWith("start trackers ")) // start tracker 5m 30
                         {
-                            var trackerData = inputParser.ParseStartTrackerCommand(message); //TODO Refactor namings
+                            var trackerData = inputParser.ParseStartTrackersCommand(message); //TODO Refactor namings
                             if (trackerData != null)
                                 await signalTrackerFactory.CreateTrackersForUsdcPairsAsync(trackerData.Interval,
                                     trackerData.RsiValue);

@@ -15,7 +15,7 @@ public class InputParser : IInputParser
         "1M"
     ];
 
-    public TrackerData? ParseStartTrackerCommand(string input)
+    public TrackerData? ParseStartTrackersCommand(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return null;
@@ -33,7 +33,7 @@ public class InputParser : IInputParser
             return null;
 
         if (!int.TryParse(rsiString, out var rsiValue) || rsiValue < 1 || rsiValue > 100)
-            return null; 
+            return null;
 
         return new TrackerData(interval, rsiValue);
     }
@@ -44,13 +44,43 @@ public class InputParser : IInputParser
             return null;
 
         var parts = input.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length != 3
+            || !parts[0].Equals("stop", StringComparison.OrdinalIgnoreCase)
+            || !parts[1].Equals("tracking", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var interval = parts[2].Trim();
+
+        return !_validIntervals.Contains(interval) ? null : interval;
+    }
+
+    // Start Specific Btc interval Rsi
+    public StartSpecificSymbolRsiRequest? ParseStartSpecificTrackerCommand(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+
+        var parts = input.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         
-        if (parts.Length != 3 || !parts[0].Equals("stop", StringComparison.OrdinalIgnoreCase) || !parts[1].Equals("tracking", StringComparison.OrdinalIgnoreCase))
+        if (parts.Length < 4)
             return null;
         
-        var interval = parts[2].Trim();
+        if (!int.TryParse(parts[3], out var rsiValue))
+            return null;
+
+        var parsedSymbol = parts[2].ToLower();
+
+        var parsedInterval = parts[3].ToLower();
+        if (!_validIntervals.Contains(parsedInterval))
+            return null;
         
-        return !_validIntervals.Contains(interval) ? null : interval;
+        return new StartSpecificSymbolRsiRequest
+        {
+            symbol = parsedSymbol,
+            interval = parsedInterval,
+            rsi = rsiValue
+        };
     }
 
     public RsiRequest? ParseRsiCommand(string input)

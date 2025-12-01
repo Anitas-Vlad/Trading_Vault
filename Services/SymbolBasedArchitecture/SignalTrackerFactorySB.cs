@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
 using TradingVault.Interfaces;
 using TradingVault.Interfaces.SymbolBasedArchitecture;
+using TradingVault.Models.Keys;
 using TradingVault.Options;
 using TradingVault.Options.TradingOptions;
+using TradingVault.Requests;
 
 namespace TradingVault.Services.SymbolBasedArchitecture;
 
@@ -17,6 +19,8 @@ public class SignalTrackerFactorySB(
     // private CancellationTokenSource _cts = new();
     private Dictionary<string, CancellationTokenSource> _ctssByInterval = new();
     private List<Symbol> _symbols = [];
+
+    private Dictionary<SpecificTrackerInfo, CancellationTokenSource> _specificTrackersCtss = new();
 
     public SignalTrackerSB CreateTracker(string symbol, string interval, int rsiThreshold) =>
         new(
@@ -35,7 +39,54 @@ public class SignalTrackerFactorySB(
         await telegramService.SendMessageAsync($"Active Trackers: {activeTrackersCount}");
     }
 
+    public async Task CreateSpecificTask(StartSpecificSymbolRsiRequest request)
+        // Use the intervalToken for both the normal trackers and specific ones. No need for multiple keys if the intervals need updates similar times
+    {
+        var usdcPairs = await klineProcessor.SelectTradingPairsForQuoteAsset();
+
+        var specificTrackerInfo = new SpecificTrackerInfo()
+        {
+            interval = request.interval,
+            symbol = request.symbol
+        };
+
+        if (!_specificTrackersCtss.ContainsKey(specificTrackerInfo))
+            _specificTrackersCtss[specificTrackerInfo] = new CancellationTokenSource();
+        else
+        {
+            await telegramService.SendMessageAsync(
+                $"⚠️Tracker [{specificTrackerInfo.symbol}-{specificTrackerInfo.interval}] already exist.");
+            return;
+        }
+
+        if (usdcPairs.All(pair => pair != request.symbol))
+        {
+            await telegramService.SendMessageAsync($"⚠️[{request.symbol}] pair not found.");
+            return;
+        }
+
+        var existingSymbol = _symbols.FirstOrDefault(symbol =>
+            symbol.symbol.Equals(request.symbol, StringComparison.CurrentCultureIgnoreCase));
+        
+        if (existingSymbol == null)
+        {
+            var newSymbol = new Symbol(request.symbol);
+
+            var tracker = CreateTracker(request.symbol, request.interval, request.rsi);
+            newSymbol.AddSpecificTracker(tracker);
+            _symbols.Add(newSymbol);
+
+            _ = Task.Run(() => tracker.SeedAsync()); //TODO Edited this hoping it fixes the initial cold delay issue
+        }
+        else
+        {
+            var specificTracker = existingSymbol.FindSpecificTracker(request);
+            
+        }
+    }
+
     public async Task CreateTrackersForUsdcPairsAsync(string interval, int rsiValue)
+        // Use the intervalToken for both the normal trackers and specific ones. No need for multiple keys if the intervals need updates similar times
     {
         var usdcPairs = await klineProcessor.SelectTradingPairsForQuoteAsset();
 
@@ -56,7 +107,6 @@ public class SignalTrackerFactorySB(
             symbol.trackers.Add(tracker);
             _symbols.Add(symbol);
 
-            // await tracker.SeedAsync();
             _ = Task.Run(() => tracker.SeedAsync()); //TODO Edited this hoping it fixes the initial cold delay issue
         }
 
@@ -150,7 +200,7 @@ public class SignalTrackerFactorySB(
 
     public async Task StopTrackersForInterval(string interval)
     {
-        foreach (var symbol in _symbols) 
+        foreach (var symbol in _symbols)
             symbol.StopTrackersByInterval(interval);
 
         _ctssByInterval.Remove(interval);
